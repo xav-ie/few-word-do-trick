@@ -9,6 +9,7 @@
 {
   cachix.enable = false;
 
+  env.APPLE_DEVELOPMENT_TEAM = "W5JUHW3QRX";
   # https://devenv.sh/packages/
   packages =
     with pkgs;
@@ -28,13 +29,34 @@
       librsvg
       libsoup_3
       pango
-      # "broken"?
-      # webkitgtk_4_1
       openssl
+      rustup
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
+      webkitgtk_4_1
       android-studio
+    ]
+    ++ lib.optionals pkgs.stdenv.isDarwin [
+      darwin.apple_sdk.frameworks.CoreFoundation
+      darwin.apple_sdk.frameworks.Security
+      darwin.apple_sdk.frameworks.SystemConfiguration
+      libiconv
+      darwin.apple_sdk.Libsystem
+      darwin.apple_sdk.frameworks.AppKit
+      darwin.apple_sdk.frameworks.Cocoa
+      darwin.apple_sdk.frameworks.CoreServices
+      darwin.apple_sdk.frameworks.Security
+      darwin.apple_sdk.frameworks.SystemConfiguration
+      darwin.apple_sdk.frameworks.WebKit
+      darwin.apple_sdk.frameworks.Foundation
+      darwin.apple_sdk.frameworks.SwiftUI
+      darwin.apple_sdk.frameworks.UIFoundation
+      darwin.libobjc
+      # llvmPackages.libcxxStdenv
+      # llvmPackages.libcxxClang
     ];
+  stdenv = pkgs.stdenvNoCC;
+  # cargo build --package tauri-app --manifest-path /Users/x/Projects/tauri-app/src-tauri/Cargo.toml --target aarch64-apple-ios-sim --features tauri/rustls-tls --lib --no-default-features
 
   # https://devenv.sh/languages/
   languages = {
@@ -54,9 +76,10 @@
           "x86_64-linux-android"
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
+          "aarch64-apple-darwin"
           "aarch64-apple-ios"
-          "x86_64-apple-ios"
           "aarch64-apple-ios-sim"
+          "x86_64-apple-ios"
         ];
       components = [
         "rustc"
@@ -65,6 +88,8 @@
         "rustfmt"
         "rust-analyzer"
       ];
+
+      # mold.enable = true;
     };
   };
 
@@ -95,11 +120,16 @@
         export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
         export ANDROID_HOME="$HOME/Library/Android/sdk"
         export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk)"
+
       ''
     else
       ''
         echo "Unsupported OS"
       '';
+  # export SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk
+  # # does not work
+  # export LDFLAGS="-isysroot $SDKROOT -F${pkgs.darwin.apple_sdk.frameworks.WebKit}/Library/Frameworks $LDFLAGS"
+  # export CFLAGS="-isysroot $SDKROOT -F${pkgs.darwin.apple_sdk.frameworks.WebKit}/Library/Frameworks $CFLAGS"
 
   # https://devenv.sh/tests/
   # enterTest = ''
